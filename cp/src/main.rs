@@ -3,8 +3,12 @@ use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use std::fs;
-use std::path::PathBuf;
+use std::fs::File;
+use std::io;
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Copy", version = "0.1", author)]
@@ -29,7 +33,7 @@ struct Opts {
     pub paths: Vec<String>,
 }
 
-fn init_log(debug_level: u8) -> Result<(), Box<dyn std::error::Error>> {
+fn init_log(debug_level: u8) -> Result<()> {
     let encoder = PatternEncoder::new("{h({l} {t}: {m}{n})}");
     let console_appender = ConsoleAppender::builder()
         .encoder(Box::new(encoder))
@@ -51,7 +55,16 @@ fn init_log(debug_level: u8) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn run(mut opts: Opts) -> Result<(), Box<dyn std::error::Error>> {
+fn copy_file(src: &Path, dst: &Path) -> Result<u64> {
+    let mut src_file = File::open(src)?;
+    let mut dst_file = File::create(dst)?;
+
+    let bytes_copied = io::copy(&mut src_file, &mut dst_file)?;
+
+    Ok(bytes_copied)
+}
+
+fn run(mut opts: Opts) -> Result<()> {
     init_log(opts.verbose)?;
 
     let dst = opts.paths.pop().unwrap();
@@ -84,7 +97,7 @@ fn run(mut opts: Opts) -> Result<(), Box<dyn std::error::Error>> {
             dst_path.push(src_path.file_name().unwrap())
         }
 
-        let bytes_copied = fs::copy(src_path, dst_path)?;
+        let bytes_copied = copy_file(src_path.as_path(), dst_path.as_path())?;
         trace!("Copied {} bytes", bytes_copied);
 
         total_bytes_copied += bytes_copied
