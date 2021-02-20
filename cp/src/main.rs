@@ -26,6 +26,10 @@ struct Opts {
     /// Enable debug logging.
     pub verbose: u8,
 
+    #[structopt(short = "t", long = "target-directory")]
+    /// Move all paths into specified target directory.
+    pub target: Option<String>,
+
     #[structopt(min_values = 2)]
     /// Paths to process.
     ///
@@ -67,7 +71,12 @@ fn copy_file(src: &Path, dst: &Path) -> Result<u64> {
 fn run(mut opts: Opts) -> Result<()> {
     init_log(opts.verbose)?;
 
-    let dst = opts.paths.pop().unwrap();
+    let dst = if let Some(dst_dir) = opts.target {
+        dst_dir
+    } else {
+        opts.paths.pop().unwrap()
+    };
+
     let srcs = opts.paths;
 
     trace!("Sources: {:?}", srcs);
