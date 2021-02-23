@@ -1,14 +1,10 @@
 [package]
-name = "cp"
+name = "tobin"
 version = "0.1.0"
 authors = ["Vadym S. Khondar <vadym@khondar.name>"]
 edition = "2018"
-description = "UNIX copy utility in Rust"
-
+description = "Decimal to binary converter"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4"
-log4rs = "1.0"
-structopt = "0.3"
